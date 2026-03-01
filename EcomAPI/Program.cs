@@ -8,17 +8,19 @@ builder.Services.AddDbContext<AppDbContext>(opt => opt.UseSqlite(builder.Configu
 
 var app = builder.Build();
 
-app.MapPost("/api/orders", async (AppDbContext context, Order order) =>
+app.MapPost("/api/orders", async (AppDbContext context, CreateOrderCommand command) =>
 {
-    await context.Orders.AddAsync(order);
-    await context.SaveChangesAsync();
+    var createdOrder = await CreateOrderCommandHandler.Handle(command, context);
 
-    return Results.Created($"/api/orders{order.Id}", order);
+    if (createdOrder == null)
+        return Results.BadRequest("Failed to create an order");
+
+    return Results.Created($"/api/orders{createdOrder.Id}", createdOrder);
 });
 
 app.MapGet("/api/orders/{id}", async (AppDbContext context, int id) =>
 {
-    var order = await context.Orders.FirstOrDefaultAsync(o => o.Id == id);
+    var order = await GetOrderByIdQueryHandler.Handle(new GetOrderByIdQuery(id), context);
 
     if (order == null)
         return Results.NotFound();
