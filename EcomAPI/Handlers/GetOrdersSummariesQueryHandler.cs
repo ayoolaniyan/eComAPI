@@ -5,8 +5,8 @@ namespace EcomAPI.Handlers
 {
     public class GetOrdersSummariesQueryHandler : IQueryHandler<GetOrdersSummariesQuery, List<OrderSummaryDto>>
     {
-        public readonly AppDbContext _context;
-        public GetOrdersSummariesQueryHandler(AppDbContext context)
+        public readonly ReadDbContext _context;
+        public GetOrdersSummariesQueryHandler(ReadDbContext context)
         {
             _context = context;
         }

@@ -4,8 +4,8 @@ using Microsoft.EntityFrameworkCore;
 
 public class GetOrderByIdQueryHandler : IQueryHandler<GetOrderByIdQuery, OrderDto>
 {
-    private readonly AppDbContext _context;
-    public GetOrderByIdQueryHandler(AppDbContext context)
+    private readonly ReadDbContext _context;
+    public GetOrderByIdQueryHandler(ReadDbContext context)
     {
         _context = context;
     }
