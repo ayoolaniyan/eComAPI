@@ -9,6 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<AppDbContext>(opt => opt.UseSqlite(builder.Configuration.GetConnectionString("BaseConnection")));
 builder.Services.AddScoped<ICommandHandler<CreateOrderCommand, OrderDto>, CreateOrderCommandHandler>();
 builder.Services.AddScoped<IQueryHandler<GetOrderByIdQuery, OrderDto>, GetOrderByIdQueryHandler>();
+builder.Services.AddScoped<IQueryHandler<GetOrdersSummariesQuery, List<OrderSummaryDto>>, GetOrdersSummariesQueryHandler>();
 builder.Services.AddScoped<IValidator<CreateOrderCommand>, CreateOrderCommandValidator>();
 
 var app = builder.Build();
@@ -40,6 +41,13 @@ app.MapGet("/api/orders/{id}", async (IQueryHandler<GetOrderByIdQuery, OrderDto>
         return Results.NotFound();
 
     return Results.Ok(order);
+});
+
+// TODOS: Pagination
+app.MapGet("/api/orders", async (IQueryHandler<GetOrdersSummariesQuery, List<OrderSummaryDto>> handler) =>
+{
+    var summaries = await handler.HandleAsync(new GetOrdersSummariesQuery());
+    return Results.Ok(summaries);
 });
 
 app.Run();
