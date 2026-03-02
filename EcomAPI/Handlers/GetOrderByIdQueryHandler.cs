@@ -1,8 +1,9 @@
 using EcomAPI.Data;
 using EcomAPI.Handlers;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-public class GetOrderByIdQueryHandler : IQueryHandler<GetOrderByIdQuery, OrderDto>
+public class GetOrderByIdQueryHandler : IRequestHandler<GetOrderByIdQuery, OrderDto?>
 {
     private readonly ReadDbContext _context;
     public GetOrderByIdQueryHandler(ReadDbContext context)
@@ -10,9 +11,11 @@ public class GetOrderByIdQueryHandler : IQueryHandler<GetOrderByIdQuery, OrderDt
         _context = context;
     }
 
-    public async Task<OrderDto?> HandleAsync(GetOrderByIdQuery query)
+    public async Task<OrderDto?> Handle(GetOrderByIdQuery request, CancellationToken cancellationToken)
     {
-        var order = await _context.Orders.FirstOrDefaultAsync(o => o.Id == query.OrderId);
+        var order = await _context.Orders
+            .AsNoTracking()
+            .FirstOrDefaultAsync(o => o.Id == request.OrderId);
 
         if (order == null)
             return null;
