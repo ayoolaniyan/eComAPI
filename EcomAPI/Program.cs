@@ -1,16 +1,18 @@
 using EcomAPI.Data;
-using EcomAPI.Models;
+using EcomAPI.Handlers;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<AppDbContext>(opt => opt.UseSqlite(builder.Configuration.GetConnectionString("BaseConnection")));
+builder.Services.AddScoped<ICommandHandler<CreateOrderCommand, OrderDto>, CreateOrderCommandHandler>();
+builder.Services.AddScoped<IQueryHandler<GetOrderByIdQuery, OrderDto>, GetOrderByIdQueryHandler>();
 
 var app = builder.Build();
 
-app.MapPost("/api/orders", async (AppDbContext context, CreateOrderCommand command) =>
+app.MapPost("/api/orders", async (ICommandHandler<CreateOrderCommand, OrderDto> handler, CreateOrderCommand command) =>
 {
-    var createdOrder = await CreateOrderCommandHandler.Handle(command, context);
+    var createdOrder = await handler.HandleAsync(command);
 
     if (createdOrder == null)
         return Results.BadRequest("Failed to create an order");
@@ -18,10 +20,9 @@ app.MapPost("/api/orders", async (AppDbContext context, CreateOrderCommand comma
     return Results.Created($"/api/orders{createdOrder.Id}", createdOrder);
 });
 
-app.MapGet("/api/orders/{id}", async (AppDbContext context, int id) =>
+app.MapGet("/api/orders/{id}", async (IQueryHandler<GetOrderByIdQuery, OrderDto> handler, int id) =>
 {
-    var order = await GetOrderByIdQueryHandler.Handle(new GetOrderByIdQuery(id), context);
-
+    var order = await handler.HandleAsync(new GetOrderByIdQuery(id));
     if (order == null)
         return Results.NotFound();
 
