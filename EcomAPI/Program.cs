@@ -2,6 +2,7 @@ using EcomAPI.Commands;
 using EcomAPI.Data;
 using EcomAPI.Events;
 using EcomAPI.Handlers;
+using EcomAPI.Projections;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,7 +17,8 @@ builder.Services.AddScoped<IQueryHandler<GetOrderByIdQuery, OrderDto>, GetOrderB
 builder.Services.AddScoped<IQueryHandler<GetOrdersSummariesQuery, List<OrderSummaryDto>>, GetOrdersSummariesQueryHandler>();
 builder.Services.AddScoped<IValidator<CreateOrderCommand>, CreateOrderCommandValidator>();
 
-builder.Services.AddSingleton<IEventPublisher, ConsoleEventPublisher>();
+builder.Services.AddSingleton<IEventPublisher, InProcessEventPublisher>();
+builder.Services.AddScoped<IEventHandler<OrderCreatedEvent>, OrderCreatedProjectionHandler>();
 
 var app = builder.Build();
 
