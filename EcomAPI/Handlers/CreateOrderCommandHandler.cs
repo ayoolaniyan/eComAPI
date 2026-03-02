@@ -1,4 +1,5 @@
 using EcomAPI.Data;
+using EcomAPI.Events;
 using EcomAPI.Handlers;
 using EcomAPI.Models;
 using FluentValidation;
@@ -7,10 +8,12 @@ public class CreateOrderCommandHandler : ICommandHandler<CreateOrderCommand, Ord
 {
     private readonly AppDbContext _context;
     private readonly IValidator<CreateOrderCommand> _validator;
-    public CreateOrderCommandHandler(AppDbContext context, IValidator<CreateOrderCommand> validator)
+    private readonly IEventPublisher _eventPublisher;
+    public CreateOrderCommandHandler(AppDbContext context, IValidator<CreateOrderCommand> validator, IEventPublisher eventPublisher)
     {
         _context = context;
         _validator = validator;
+        _eventPublisher = eventPublisher;
     }
     public async Task<OrderDto> HandleAsync(CreateOrderCommand command)
     {
@@ -32,6 +35,16 @@ public class CreateOrderCommandHandler : ICommandHandler<CreateOrderCommand, Ord
 
         await _context.Orders.AddAsync(order);
         await _context.SaveChangesAsync();
+
+        var ordeerCreatedEvent = new OrderCreatedEvent
+        (
+            order.Id,
+            order.FirstName,
+            order.LastName,
+            order.TotalCost
+        );
+
+        await _eventPublisher.PublishAsync(ordeerCreatedEvent);
 
         return new OrderDto(
             order.Id,
